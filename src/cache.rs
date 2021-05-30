@@ -1,39 +1,42 @@
-use std::cell::Cell;
+use parking_lot::Mutex;
+use std::mem;
 
-pub(crate) struct CacheCell<T: Clone> {
-    cell: Cell<Option<T>>,
+pub(crate) struct CacheMutex<T: Clone> {
+    m: Mutex<Option<T>>,
 }
 
-impl<T: Clone> Clone for CacheCell<T> {
+impl<T: Clone> Clone for CacheMutex<T> {
     fn clone(&self) -> Self {
-        let value = self.cell.replace(None);
-        self.cell.set(value.clone());
+        let mut me = self.m.lock();
+        let value = mem::replace(&mut *me, None);
+        *me = value.clone();
         Self {
-            cell: Cell::new(value),
+            m: Mutex::new(value),
         }
     }
 }
 
-impl<T: Clone> Default for CacheCell<T> {
+impl<T: Clone> Default for CacheMutex<T> {
     fn default() -> Self {
         Self {
-            cell: Cell::new(None),
+            m: Mutex::new(None),
         }
     }
 }
 
-impl<T: Clone> CacheCell<T> {
+impl<T: Clone> CacheMutex<T> {
     pub fn get<E>(&self, factory: impl FnOnce() -> Result<T, E>) -> Result<T, E> {
-        let value = match self.cell.replace(None) {
+        let mut me = self.m.lock();
+        let value = match mem::replace(&mut *me, None) {
             Some(value) => value,
             None => factory()?,
         };
-        self.cell.set(Some(value.clone()));
+        *me = Some(value.clone());
         Ok(value)
     }
 
     pub fn clear(&self) {
-        self.cell.set(None)
+        *self.m.lock() = None;
     }
 }
 
@@ -44,8 +47,8 @@ mod tests {
     use std::convert::Infallible;
 
     #[test]
-    fn test_cache_cell() {
-        let cache: CacheCell<String> = Default::default();
+    fn test_cache_mutex() {
+        let cache: CacheMutex<String> = Default::default();
 
         let value = cache
             .get(|| Ok::<_, Infallible>("Hello, World!".to_string()))

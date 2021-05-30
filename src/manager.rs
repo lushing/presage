@@ -35,7 +35,7 @@ use libsignal_service::{
 
 use libsignal_service_hyper::push_service::HyperPushService;
 
-use crate::cache::CacheCell;
+use crate::cache::CacheMutex;
 use crate::{config::ConfigStore, Error};
 
 type ServiceCipher<C, R> = cipher::ServiceCipher<C, C, C, C, R>;
@@ -58,7 +58,7 @@ pub struct Manager<C, R = rand::rngs::ThreadRng> {
 
 #[derive(Clone, Default)]
 struct Cache {
-    push_service: CacheCell<HyperPushService>,
+    push_service: CacheMutex<HyperPushService>,
 }
 
 impl Cache {
