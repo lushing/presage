@@ -202,7 +202,7 @@ impl PreKeyStore for SledConfigStore {
     async fn get_pre_key(
         &self,
         prekey_id: u32,
-        _ctx: Context,
+        _ctx: Option<Context>,
     ) -> Result<PreKeyRecord, SignalProtocolError> {
         let buf = self
             .get(self.prekey_key(prekey_id))
@@ -218,7 +218,7 @@ impl PreKeyStore for SledConfigStore {
         &mut self,
         prekey_id: u32,
         record: &PreKeyRecord,
-        _ctx: Context,
+        _ctx: Option<Context>,
     ) -> Result<(), SignalProtocolError> {
         self.insert(self.prekey_key(prekey_id), record.serialize()?)
             .expect("failed to store pre-key");
@@ -228,7 +228,7 @@ impl PreKeyStore for SledConfigStore {
     async fn remove_pre_key(
         &mut self,
         prekey_id: u32,
-        _ctx: Context,
+        _ctx: Option<Context>,
     ) -> Result<(), SignalProtocolError> {
         self.remove(self.prekey_key(prekey_id))
             .expect("failed to remove pre-key");
@@ -241,7 +241,7 @@ impl SignedPreKeyStore for SledConfigStore {
     async fn get_signed_pre_key(
         &self,
         signed_prekey_id: u32,
-        _ctx: Context,
+        _ctx: Option<Context>,
     ) -> Result<SignedPreKeyRecord, SignalProtocolError> {
         let buf = self
             .get(self.signed_prekey_key(signed_prekey_id))
@@ -257,7 +257,7 @@ impl SignedPreKeyStore for SledConfigStore {
         &mut self,
         signed_prekey_id: u32,
         record: &SignedPreKeyRecord,
-        _ctx: Context,
+        _ctx: Option<Context>,
     ) -> Result<(), SignalProtocolError> {
         self.insert(
             self.signed_prekey_key(signed_prekey_id),
@@ -275,7 +275,7 @@ impl SessionStore for SledConfigStore {
     async fn load_session(
         &self,
         address: &ProtocolAddress,
-        _ctx: Context,
+        _ctx: Option<Context>,
     ) -> Result<Option<SessionRecord>, SignalProtocolError> {
         let key = self.session_key(&address);
         trace!("loading session from {}", key);
@@ -302,7 +302,7 @@ impl SessionStore for SledConfigStore {
         &mut self,
         address: &ProtocolAddress,
         record: &SessionRecord,
-        _ctx: Context,
+        _ctx: Option<Context>,
     ) -> Result<(), SignalProtocolError> {
         let key = self.session_key(&address);
         trace!("storing session for {:?} at {:?}", address, key);
@@ -384,7 +384,7 @@ impl SessionStoreExt for SledConfigStore {
 impl IdentityKeyStore for SledConfigStore {
     async fn get_identity_key_pair(
         &self,
-        _ctx: Context,
+        _ctx: Option<Context>,
     ) -> Result<IdentityKeyPair, SignalProtocolError> {
         trace!("getting identity_key_pair");
         match self.state() {
@@ -406,7 +406,7 @@ impl IdentityKeyStore for SledConfigStore {
         }
     }
 
-    async fn get_local_registration_id(&self, _ctx: Context) -> Result<u32, SignalProtocolError> {
+    async fn get_local_registration_id(&self, _ctx: Option<Context>) -> Result<u32, SignalProtocolError> {
         trace!("getting local_registration_id");
         match self.state() {
             Ok(State::Registered {
@@ -426,7 +426,7 @@ impl IdentityKeyStore for SledConfigStore {
         &mut self,
         address: &ProtocolAddress,
         identity_key: &IdentityKey,
-        _ctx: Context,
+        _ctx: Option<Context>,
     ) -> Result<bool, SignalProtocolError> {
         trace!("saving identity");
         self.insert(self.identity_key(&address), identity_key.serialize())
@@ -443,7 +443,7 @@ impl IdentityKeyStore for SledConfigStore {
         address: &ProtocolAddress,
         identity_key: &IdentityKey,
         _direction: Direction,
-        _ctx: Context,
+        _ctx: Option<Context>,
     ) -> Result<bool, SignalProtocolError> {
         match self.get(self.identity_key(&address)).map_err(|_| {
             SignalProtocolError::InternalError("failed to check if identity is trusted")
@@ -460,7 +460,7 @@ impl IdentityKeyStore for SledConfigStore {
     async fn get_identity(
         &self,
         address: &ProtocolAddress,
-        _ctx: Context,
+        _ctx: Option<Context>,
     ) -> Result<Option<IdentityKey>, SignalProtocolError> {
         let buf = self.get(self.identity_key(&address)).map_err(|e| {
             log::error!("error getting identity of {:?}: {}", address, e);
