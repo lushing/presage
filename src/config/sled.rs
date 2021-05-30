@@ -197,7 +197,7 @@ impl ContactsStore for SledConfigStore {
     }
 }
 
-#[async_trait(?Send)]
+#[async_trait]
 impl PreKeyStore for SledConfigStore {
     async fn get_pre_key(
         &self,
@@ -236,7 +236,7 @@ impl PreKeyStore for SledConfigStore {
     }
 }
 
-#[async_trait(?Send)]
+#[async_trait]
 impl SignedPreKeyStore for SledConfigStore {
     async fn get_signed_pre_key(
         &self,
@@ -270,7 +270,7 @@ impl SignedPreKeyStore for SledConfigStore {
     }
 }
 
-#[async_trait(?Send)]
+#[async_trait]
 impl SessionStore for SledConfigStore {
     async fn load_session(
         &self,
@@ -380,7 +380,7 @@ impl SessionStoreExt for SledConfigStore {
     }
 }
 
-#[async_trait(?Send)]
+#[async_trait]
 impl IdentityKeyStore for SledConfigStore {
     async fn get_identity_key_pair(
         &self,
